@@ -50,3 +50,7 @@ The API responds with the transcription and the path to the persisted `.txt` fil
 ### Sample Workflow
 - Import `workflows/youtube-transcription.json` into n8n to download and transcribe video `kHp-vBJKnBU` (or edit the Set node to point at another video).
 - The workflow sends a JSON request to `http://whisper-worker:8000/transcribe-url`; the worker downloads the audio with `yt-dlp`, transcribes it with Whisper, and returns the text.
+
+
+---
+![n8n wrkfl](n8n.png)
