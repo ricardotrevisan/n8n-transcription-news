@@ -24,7 +24,7 @@ This stack runs an n8n instance alongside a Python worker container that ships w
 - `n8n`: Official `n8nio/n8n` image with persistent data volume at `n8n_data`.
 - `whisper-worker`: Python 3.11 image with `ffmpeg`, `openai-whisper`, `torch`, and `torchaudio` preinstalled. A cache volume (`whisper_cache`) is mounted to persist Whisper model downloads.
 
-### Customisation
+### Customization
 - Adjust environment variables for n8n inside `docker-compose.yml` as required.
 - Add your own Python scripts or automation code under `whisper-worker/` and rebuild the image.
 

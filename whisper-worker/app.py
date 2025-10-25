@@ -71,25 +71,49 @@ async def transcribe_url(payload: YoutubePayload):
             }
         ],
         "keepvideo": False,
+        # 🔧 Correções principais
+        "http_headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/124.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9,pt-BR;q=0.8",
+        },
+        "geo_bypass": True,
+        "retries": 5,
+        "fragment_retries": 10,
+        "skip_unavailable_fragments": True,
+        "concurrent_fragment_downloads": 1,
+        "http_chunk_size": 10 * 1024 * 1024,
+        "extractor_args": {
+            "youtube": {"player_client": ["android", "web"]}
+        },
     }
 
-    with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(payload.url, download=True)
-        download_path = info.get("filepath") or ydl.prepare_filename(info)
+    try:
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(payload.url, download=True)
+            download_path = info.get("filepath") or ydl.prepare_filename(info)
 
-        # yt-dlp keeps the final postprocessed filename under requested_downloads
-        for requested in info.get("requested_downloads", []):
-            candidate = requested.get("filepath")
-            if candidate and os.path.exists(candidate):
-                download_path = candidate
-                break
+            for requested in info.get("requested_downloads", []):
+                candidate = requested.get("filepath")
+                if candidate and os.path.exists(candidate):
+                    download_path = candidate
+                    break
 
-        if not os.path.exists(download_path):
-            alt_path = download_path.rsplit(".", 1)[0] + ".mp3"
-            if os.path.exists(alt_path):
-                download_path = alt_path
-            else:
-                raise HTTPException(status_code=400, detail="Unable to download audio stream")
+            if not os.path.exists(download_path):
+                alt_path = download_path.rsplit(".", 1)[0] + ".mp3"
+                if os.path.exists(alt_path):
+                    download_path = alt_path
+                else:
+                    raise HTTPException(status_code=400, detail="Unable to download audio stream")
+    except Exception as e:
+        msg = str(e)
+        if "403" in msg:
+            raise HTTPException(status_code=403, detail="Acesso negado (HTTP 403). "
+                                                        "Possível vídeo privado, bloqueio regional "
+                                                        "ou headers desatualizados.")
+        raise HTTPException(status_code=500, detail=f"Download failed: {msg}")
+
     print(f"Downloaded to {download_path}")
     model = get_model(payload.model)
     try:
@@ -106,3 +130,4 @@ async def transcribe_url(payload: YoutubePayload):
         out.write(result["text"])
 
     return {"text": result["text"], "output_file": output_path}
+
