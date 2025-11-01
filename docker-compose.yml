@@ -23,6 +23,7 @@ services:
       - N8N_DIAGNOSTICS_ENABLED=false
       - N8N_DEFAULT_LOCALE=pt-BR
       - NODE_FUNCTION_ALLOW_EXTERNAL=jsdom,@mozilla/readability,yt-channel-info
+      - NODE_FUNCTION_ALLOW_BUILTIN=fs,path,os
     volumes:
       - n8n_data_transcription:/home/node/.n8n
       - shared_data:/data
